@@ -1,3 +1,4 @@
+import pandas as pd
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, explained_variance_score
 
@@ -55,6 +56,34 @@ def model_performance_regression(model, predictors, target):
             "R-squared": r2,
             "Adj. R-squared": adjr2,
             #"MAPE": mape,
+        },
+        index=[0],
+    )
+
+    return df_perf
+
+
+def eval_model_regressor(target, pred):
+    """
+    Function to compute different metrics to check regression model performance
+
+    model: regressor
+    predictors: independent variables
+    target: dependent variable
+    """
+    
+    mse = mean_squared_error(target, pred) 
+    r2 = r2_score(target, pred)
+    mae = mean_absolute_error(target, pred)
+    evs = explained_variance_score(target, pred)
+
+    # creating a dataframe of metrics
+    df_perf = pd.DataFrame(
+        {
+            "MSE": mse,
+            "MAE": mae,
+            "R-squared": r2,
+            "Ex. var score": evs,
         },
         index=[0],
     )

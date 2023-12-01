@@ -4,11 +4,11 @@ from regressor.train_reg import RegressorModel
 from classifier.train_cls import ClassifierModel
 
 
-CHECKPOINT_PATH_REG = '/mnt/data/code/EDA_apple_sorting/regressor/results/tb_logs/lightning_logs/version_2/checkpoints/best_model_038-5721.23-59.31.ckpt'
+CHECKPOINT_PATH_REG = '/mnt/data/code/EDA_apple_sorting/classifier/results/tb_logs/lightning_logs/version_0/checkpoints/best_model_022-0.0002-1.00.ckpt'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
-def converter(checkpoint_path, infer_type='reg', file_name='./onnx-weight/mobilenetv3_regressor.onnx'):
+def converter(checkpoint_path, infer_type='reg', file_name='./onnx-weight/mobilenetv3_classifier.onnx'):
     """
     Converts a PyTorch model to ONNX format.
 
@@ -38,6 +38,6 @@ def converter(checkpoint_path, infer_type='reg', file_name='./onnx-weight/mobile
 
 
 if __name__ == '__main__':
-    converter(CHECKPOINT_PATH_REG)
+    converter(CHECKPOINT_PATH_REG, infer_type='cls')
     
     

@@ -73,7 +73,7 @@ def train_evaluate_ml(csv_path):
     return ml_models
 
 
-def eval_model_regressor(model, target, pred):
+def eval_model_regressor(target, pred):
     mse = mean_squared_error(target, pred) 
     r2 = r2_score(target, pred)
     mae = mean_absolute_error(target, pred)
@@ -102,7 +102,7 @@ def ml_test_infer(csv_path, model):
     pred = model.predict(test_df['area'].values.reshape(-1, 1))
     
     # Regression Metric
-    df_perf = eval_model_regressor(model, target, pred)
+    df_perf = eval_model_regressor(target, pred)
     
     print(df_perf)
     

@@ -1,4 +1,5 @@
 import torch
+import pandas as pd
 import torch.onnx
 import onnxruntime
 from PIL import Image
@@ -11,7 +12,7 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 import onnxruntime
-from utils.metrics import model_performance_classifier
+from utils.metrics import model_performance_classifier, eval_model_regressor
 from utils.util import to_numpy, softmax
 
 
@@ -117,8 +118,11 @@ def main(onnx_path, infer_type='reg'):
     test_df = pd.read_csv('./assets/v2/test.csv')
     test_img_list = test_df['image_path'].tolist()
 
-    begin = time.time()
     y_pred = []
+    weight_pred = []
+    
+    begin = time.time()
+    
     for img_path in test_img_list:
         image_name = os.path.basename(img_path)
         start = time.time()
@@ -128,6 +132,7 @@ def main(onnx_path, infer_type='reg'):
             print(f'Image {image_name} - Predicted class: {map_class[pred_class]:^7} with probability {pred_proba:.4f}, processing time: {end-start:.4f} secs')
         elif infer_type == 'reg':
             pred_weight, pred_class = infer_func(ort_session, img_path)
+            weight_pred.append(pred_weight)
             end = time.time()
             print(f'Image: {image_name} - Predicted weight: {pred_weight:.2f}, - Predicted class: {map_class[pred_class]:^7}, processing time: {end-start:.4f} secs')
 
@@ -139,10 +144,15 @@ def main(onnx_path, infer_type='reg'):
     print(f"Total processing time: {elapsed:.2f} seconds")
     print(f'Average processing time per image: {elapsed/len(test_img_list):.2f} seconds')
     
-    y_true = test_df['label'].tolist()
     
     # Evaluation Metrics
-    model_performance_classifier(y_true, y_pred)
+    y_true = test_df['label'].tolist()
+    weight_true = test_df['weight'].tolist()
+    
+    if infer_type == 'reg':
+        print(eval_model_regressor(weight_true, weight_pred))  # Regression Metric
+    
+    model_performance_classifier(y_true, y_pred)  # Classification Metric: 0: <=250g; 1: 250-350g; 2: >350g
     
 
 if __name__ == '__main__':
@@ -151,6 +161,6 @@ if __name__ == '__main__':
     main(onnx_path, infer_type='reg')
     
     # # Classifier model
-    # onnx_path = './onnx-weight/mobilenetv3_classifier_ver2.onnx'
+    # onnx_path = './onnx-weight/mobilenetv3_classifier_ver0.onnx'
     # main(onnx_path, infer_type='cls')
     
