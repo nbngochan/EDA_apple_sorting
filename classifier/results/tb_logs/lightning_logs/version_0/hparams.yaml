@@ -1,0 +1,4 @@
+model_name: mobilenetv3_small_050.lamb_in1k
+num_classes: 3
+pretrained: true
+task: multiclass

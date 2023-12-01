@@ -4,7 +4,7 @@ import cv2
 import os
 
 
-def main(method='canny'):
+def main(method='otsu'):
     """"Processing images with OpenCV by Simple Image Processing Algorithms"""
 
     root_folder = '/mnt/data/dataset/apple-weight-dataset/v2'
@@ -33,13 +33,13 @@ def main(method='canny'):
                 image = cv2.imread(os.path.join(foldername, filename))
                 
                 if method == 'hsv':
-                    # find the colors within the specified boundaries and apply the mask
+                    # Find the colors within the specified boundaries and apply the mask
                     mask = cv2.inRange(image, lower, upper)
                     output = cv2.bitwise_and(image, image, mask=mask)
 
                     ret, thresh = cv2.threshold(mask, 40, 255, 0)
 
-                    contours, hierarchy = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+                    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
                     sorted_contours= sorted(contours, key=cv2.contourArea, reverse= True)
                     largest_item = sorted_contours[0]
                     output = image.copy()
@@ -52,23 +52,20 @@ def main(method='canny'):
                     # Calcuate the area of the largest contour
                     area = cv2.contourArea(largest_item)
                 
-                
                     # Save the mask image in the destination folder with the same structure as the root folder
                     mask_filename = os.path.join(dest_folder, os.path.relpath(os.path.join(foldername, filename), root_folder))
                     mask_folder = os.path.dirname(mask_filename)
                     os.makedirs(mask_folder, exist_ok=True)
                     cv2.imwrite(mask_filename, binary[:,:,0])
                 
-                if method == 'canny':
+                if method == 'otsu':
                     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
                     
-                    # Apply Canny edge detection
-                    edges = cv2.Canny(gray, 100, 200)
-                    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-                    closed_mask = cv2.morphologyEx(edges, cv2.MORPH_CLOSE, kernel)
+                    # Ostu thresholding
+                    ret, thresh = cv2.threshold(gray,0,255,cv2.THRESH_BINARY_INV+cv2.THRESH_OTSU)
                     
-                    contours, _ = cv2.findContours(closed_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                    
+                    contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    
                     largest_contour = max(contours, key=cv2.contourArea)
                     area = cv2.contourArea(largest_contour)
                     mask = np.zeros_like(gray)
@@ -83,7 +80,6 @@ def main(method='canny'):
                 results.append([os.path.join(foldername, filename), area])
 
 
-    # Create a pandas dataframe to store the results
     df = pd.DataFrame(results, columns=['image_path', 'area'])
     df['weight'] = df['image_path'].apply(lambda x: int(x.split('/')[-2].split('-')[0]))
 
@@ -91,12 +87,9 @@ def main(method='canny'):
     bins = [0, 2500, 3500, np.inf]
     labels = [0, 1, 2]
 
-    # Create a new column for the label
     df['label'] = pd.cut(df['weight'], bins=bins, labels=labels)
-
-    # Save the dataframe to a CSV file
-    df.to_csv('../assets/dataset_v2.csv', index=False)
+    df.to_csv('../assets/v2/dataset_v2.csv', index=False)
 
 
 if __name__ == '__main__':
-    main(method='hsv')
+    main(method='otsu')

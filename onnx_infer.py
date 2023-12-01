@@ -1,6 +1,3 @@
-import sys
-sys.path.append('/root/data/EDA_apple_sorting/')
-
 import torch
 import torch.onnx
 import onnxruntime
@@ -14,14 +11,14 @@ import torch
 import torchvision.transforms as transforms
 from PIL import Image
 import onnxruntime
-from utils.metrics import print_evaluation_metric
+from utils.metrics import model_performance_classifier
 from utils.util import to_numpy, softmax
 
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 transform = transforms.Compose(
     [
-        transforms.Resize((512, 512)),
+        transforms.Resize((368, 368)),
         transforms.ToTensor(),
         transforms.Normalize(
             mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]
@@ -78,6 +75,7 @@ def onnx_infer_reg(ort_session, image_path):
     Returns:
         ort_outs (float): The predicted weight.
     """
+    
     img_y = transform_image(image_path)
     ort_inputs = {ort_session.get_inputs()[0].name: to_numpy(img_y)}
     ort_outs = ort_session.run(None, ort_inputs)
@@ -100,7 +98,7 @@ def main(onnx_path, infer_type='reg'):
     infer_type_dict = {'cls': onnx_infer_cls, 'reg': onnx_infer_reg}
 
     # Inference on a single image
-    image_path = '/root/data/apple/apple-sorting/2940-29/image0001425.png'
+    image_path = '/mnt/data/dataset/apple-weight-dataset/v2/4140-126/image0007368.png'
     ort_session = onnxruntime.InferenceSession(onnx_path)
 
     if infer_type in infer_type_dict:
@@ -116,7 +114,7 @@ def main(onnx_path, infer_type='reg'):
         print(f'Invalid inference type: {infer_type}')
 
     # Inference on multiple images from test dataset
-    test_df = pd.read_csv('./assets/test_reg.csv')
+    test_df = pd.read_csv('./assets/v2/test.csv')
     test_img_list = test_df['image_path'].tolist()
 
     begin = time.time()
@@ -144,15 +142,15 @@ def main(onnx_path, infer_type='reg'):
     y_true = test_df['label'].tolist()
     
     # Evaluation Metrics
-    print_evaluation_metric(y_true, y_pred)
+    model_performance_classifier(y_true, y_pred)
     
 
 if __name__ == '__main__':
-    # # Regressor model
-    # onnx_path = './onnx-weight/mobilenetv3_regressor_ver19.onnx'
-    # main(onnx_path, infer_type='reg')
+    # Regressor model
+    onnx_path = './onnx-weight/mobilenetv3_regressor_ver2.onnx'
+    main(onnx_path, infer_type='reg')
     
-    # Classifier model
-    onnx_path = './onnx-weight/mobilenetv3_classifier_ver20.onnx'
-    main(onnx_path, infer_type='cls')
+    # # Classifier model
+    # onnx_path = './onnx-weight/mobilenetv3_classifier_ver2.onnx'
+    # main(onnx_path, infer_type='cls')
     

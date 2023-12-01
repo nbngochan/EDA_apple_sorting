@@ -1,10 +1,10 @@
 import torch
 import torch.onnx
-from train_reg import RegressorModel
-from train_cls import ClassifierModel
+from regressor.train_reg import RegressorModel
+from classifier.train_cls import ClassifierModel
 
 
-CHECKPOINT_PATH_REG = './results/tb_logs/lightning_logs/version_19/checkpoints/best_model_031-8274.51-68.61.ckpt'
+CHECKPOINT_PATH_REG = '/mnt/data/code/EDA_apple_sorting/regressor/results/tb_logs/lightning_logs/version_2/checkpoints/best_model_038-5721.23-59.31.ckpt'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
 
@@ -29,7 +29,7 @@ def converter(checkpoint_path, infer_type='reg', file_name='./onnx-weight/mobile
     model = model.to(device)
 
     # Create a random input tensor for the model
-    torch_input = torch.randn(1, 3, 512, 512).to(device)
+    torch_input = torch.randn(1, 3, 368, 368).to(device)
 
     # Export the model to ONNX format
     torch.onnx.export(model, torch_input, file_name, export_params=True,
