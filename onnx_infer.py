@@ -3,15 +3,10 @@ import pandas as pd
 import torch.onnx
 import onnxruntime
 from PIL import Image
-import torchvision.transforms as transforms
 import numpy as np
-import pandas as pd
 import time
 import os
-import torch
 import torchvision.transforms as transforms
-from PIL import Image
-import onnxruntime
 from utils.metrics import model_performance_classifier, eval_model_regressor
 from utils.util import to_numpy, softmax
 

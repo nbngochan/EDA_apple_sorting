@@ -3,12 +3,12 @@ import torch.onnx
 from regressor.train_reg import RegressorModel
 from classifier.train_cls import ClassifierModel
 
+# CHECKPOINT_PATH_REG = '/mnt/data/code/EDA_apple_sorting/classifier/results/tb_logs/lightning_logs/version_0/checkpoints/best_model_022-0.0002-1.00.ckpt'
+CHECKPOINT_PATH_REG = '/mnt/data/code/EDA_apple_sorting/regressor/results/tb_logs/lightning_logs/version_2/checkpoints/best_model_038-5721.23-59.31.ckpt'
 
-CHECKPOINT_PATH_REG = '/mnt/data/code/EDA_apple_sorting/classifier/results/tb_logs/lightning_logs/version_0/checkpoints/best_model_022-0.0002-1.00.ckpt'
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-
-def converter(checkpoint_path, infer_type='reg', file_name='./onnx-weight/mobilenetv3_classifier.onnx'):
+def converter(checkpoint_path, infer_type='reg', file_name='./onnx-weight/mobilenetv3_classifier_231208.onnx'):
     """
     Converts a PyTorch model to ONNX format.
 
@@ -32,12 +32,14 @@ def converter(checkpoint_path, infer_type='reg', file_name='./onnx-weight/mobile
     torch_input = torch.randn(1, 3, 368, 368).to(device)
 
     # Export the model to ONNX format
-    torch.onnx.export(model, torch_input, file_name, export_params=True,
-                                    input_names = ['input'], output_names = ['output'])
-
-
-
+    torch.onnx.export(model, 
+                      torch_input, 
+                      file_name, 
+                      export_params=True,
+                      input_names = ['input'], 
+                      output_names = ['output'])
+    print('ONNX export success, saved as %s' % file_name)
 if __name__ == '__main__':
-    converter(CHECKPOINT_PATH_REG, infer_type='cls')
+    converter(CHECKPOINT_PATH_REG, infer_type='reg')
     
     
