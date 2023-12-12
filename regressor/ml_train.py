@@ -1,7 +1,9 @@
+import os
 import sys
 sys.path.append('../')
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn.tree import DecisionTreeRegressor
 from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.neighbors import KNeighborsRegressor
@@ -12,8 +14,90 @@ from sklearn.svm import SVR
 from sklearn.model_selection import train_test_split
 from utils.metrics import print_evaluation_metric_regressor, model_performance_classifier
 from sklearn.metrics import mean_squared_error, r2_score, mean_absolute_error, explained_variance_score
+from sklearn.model_selection import learning_curve
+from sklearn.model_selection import ShuffleSplit
 
 
+# def plot_learning_curve(estimator, title, X, y, ylim=None, cv=None,
+#                         n_jobs=1, train_sizes=np.linspace(.1, 1.0, 5), save_path=None):
+#     plt.figure()
+#     plt.title(title)
+#     if ylim is not None:
+#         plt.ylim(*ylim)
+#     plt.xlabel("Training examples")
+#     plt.ylabel("Score")
+#     train_sizes, train_scores, test_scores = learning_curve(
+#         estimator, X, y, cv=cv, n_jobs=n_jobs, train_sizes=train_sizes)
+#     train_scores_mean = np.mean(train_scores, axis=1)
+#     train_scores_std = np.std(train_scores, axis=1)
+#     test_scores_mean = np.mean(test_scores, axis=1)
+#     test_scores_std = np.std(test_scores, axis=1)
+#     plt.grid()
+
+#     plt.fill_between(train_sizes, train_scores_mean - train_scores_std,
+#                      train_scores_mean + train_scores_std, alpha=0.1,
+#                      color="r")
+#     plt.fill_between(train_sizes, test_scores_mean - test_scores_std,
+#                      test_scores_mean + test_scores_std, alpha=0.1, color="g")
+#     plt.plot(train_sizes, train_scores_mean, 'o-', color="r",
+#              label="Training score")
+#     plt.plot(train_sizes, test_scores_mean, 'o-', color="g",
+#              label="Cross-validation score")
+
+#     plt.legend(loc="best")
+
+#     if save_path:
+#         if not os.path.exists(save_path):
+#             os.makedirs(save_path)
+#         plt.savefig(os.path.join(save_path, f"{title}.png"))
+
+def plot_learning_curve(regressor, title, X, y, cv, save_path):
+    _, ax = plt.subplots(nrows=2, ncols=1, figsize=(12, 8), gridspec_kw={'hspace': 0.4})
+    
+    common_params = {
+        "X": X,
+        "y": y,
+        "train_sizes": np.linspace(0.1, 1.0, 5),
+        "cv": cv,
+        "scoring": 'r2',  # if 'neg_mean_squared_error', change the sign of train_scores_mean and test_scores_mean
+        "n_jobs": 4,
+        "shuffle": True
+    }
+    
+    train_sizes, train_scores, test_scores, fit_times, _ = learning_curve(regressor, return_times=True, **common_params)
+    train_scores_mean = np.mean(train_scores, axis=1)
+    train_scores_std = np.std(train_scores, axis=1)
+    test_scores_mean = np.mean(test_scores, axis=1)
+    test_scores_std = np.std(test_scores, axis=1)
+    
+    
+    # Learning curve plot
+    ax[0].fill_between(train_sizes, train_scores_mean - train_scores_std, train_scores_mean + train_scores_std, alpha=0.1, color="r")
+    ax[0].fill_between(train_sizes, test_scores_mean - test_scores_std, test_scores_mean + test_scores_std, alpha=0.1, color="g")
+    ax[0].plot(train_sizes, train_scores_mean, 'o-', color="r", label="Training score")
+    ax[0].plot(train_sizes, test_scores_mean, 'o-', color="g", label="Cross-validation score")
+    ax[0].set_title(title)
+    ax[0].set_xlabel("Training examples")
+    ax[0].set_ylabel("R2 Score")
+    ax[0].grid(True)
+    ax[0].legend(loc="best")
+    
+    # Scalability analysis plot
+    ax[1].plot(fit_times.mean(axis=1), test_scores_mean, "o-")
+    ax[1].fill_between(
+        fit_times.mean(axis=1),
+        test_scores_mean - test_scores_std,
+        test_scores_mean + test_scores_std,
+        alpha=0.3,
+    )
+    ax[1].set_ylabel("R2 Score")
+    ax[1].set_xlabel("Fit time (s)")
+    ax[1].set_title(f"Performance of the {regressor.__class__.__name__} regressor")
+
+    plt.savefig(save_path)
+
+    
+    
 def train_evaluate_ml(csv_path):
     ml_models = {'decision_tree': None, 'gradient_boosting': None, 'knn': None,
             'logistic_regression': None, 'naive_bayes': None, 'random_forest': None, 'svm': None}
@@ -69,6 +153,10 @@ def train_evaluate_ml(csv_path):
         print(f'Model: {model}')
         print_evaluation_metric_regressor(mse, r2, mae, evs)
         print('--------------------------------------')
+        
+        title = f"Learning Curves for ({model.title()})"
+        plot_learning_curve(regressor, title, X, y, cv=ShuffleSplit(n_splits=50, test_size=0.2, random_state=0), save_path=f'../assets/plot/learning_curve_new_{model}.png')
+
         
     return ml_models
 
