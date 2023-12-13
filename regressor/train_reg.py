@@ -242,6 +242,7 @@ class RegressorModel(LightningModule):
             model_name=model_name, pretrained=pretrained, num_classes=0
         )
         
+        
         if model_name == 'resnet18':
             last_layer = self.model.layer4[-1]
             last_conv = last_layer.conv2
@@ -251,6 +252,27 @@ class RegressorModel(LightningModule):
             last_conv = self.model.conv_head
             in_features = last_conv.out_channels
        
+        elif model_name == 'efficientnet_b0.ra_in1k':
+            last_conv = self.model.conv_head
+            in_features = last_conv.out_channels
+        
+        elif model_name == 'efficientnet_b3.ra2_in1k':
+            last_conv = self.model.conv_head
+            in_features = last_conv.out_channels
+            
+        elif model_name == 'regnetx_002.pycls_in1k':
+            last_conv = self.model.s4.b7.conv3.conv
+            in_features = last_conv.out_channels
+        
+        elif model_name == 'regnety_002.pycls_in1k':
+            last_conv = self.model.s4.b7.conv3.conv
+            in_features = last_conv.out_channels
+        
+        elif model_name == 'fbnetc_100.rmsp_in1k':
+            last_conv = self.model.conv_head
+            in_features = last_conv.out_channels
+        
+        
         # Change output layer for regression
         self.regression_head = nn.Linear(in_features, 1)
         

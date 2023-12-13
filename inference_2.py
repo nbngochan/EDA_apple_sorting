@@ -121,11 +121,11 @@ def eval_model_regressor(target, pred):
         },
         index=[0],
     )
-
+    print(df_perf)
     return df_perf
 
 def main():
-    checkpoint_path = "/mnt/data/code/EDA_apple_sorting/regressor/results/tb_logs/lightning_logs/version_2/checkpoints/best_model_038-5721.23-59.31.ckpt"
+    checkpoint_path = "/mnt/code/EDA_apple_sorting/regressor/results/tb_logs/lightning_logs/version_8/checkpoints/best_model_040-7067.54-65.22.ckpt"
     test_dataset = '/mnt/data/code/EDA_apple_sorting/assets/v2/test.csv'
     
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
